@@ -1,0 +1,2 @@
+site_id,time_bin,site_area_km2,vessel_count,heading_entropy,speed_mean_kn,speed_std_kn,speed_cv,complexity_raw,density_raw
+R4,2022-04-24 00:00:00+00:00,375.7063665071498,1.0,0.0,10.4,0.0,0.0,0.0,0.002661653059799746
