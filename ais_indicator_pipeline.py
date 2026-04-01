@@ -179,7 +179,12 @@ def infer_local_epsg(lon, lat):
 
 def load_sites():
     sites_wgs = get_5_regions()
-    centroid = sites_wgs.geometry.union_all().centroid
+    merged_geometry = (
+        sites_wgs.geometry.union_all()
+        if hasattr(sites_wgs.geometry, "union_all")
+        else sites_wgs.geometry.unary_union
+    )
+    centroid = merged_geometry.centroid
     epsg = infer_local_epsg(centroid.x, centroid.y)
     sites_proj = sites_wgs.to_crs(epsg)
     sites_proj["area_km2"] = sites_proj.geometry.area / 1e6
@@ -312,10 +317,10 @@ def detect_conflicts(proj, search_nm, dcpa_nm, tcpa_min):
         tree = cKDTree(xy)
         pairs = tree.query_pairs(s_m)
         if not pairs: continue
-        crs = np.radians(g.course)
-        spd = g.speed * 0.514444
+        crs = np.radians(g.course.to_numpy())
+        spd = g.speed.to_numpy() * 0.514444
         vx, vy = spd * np.sin(crs), spd * np.cos(crs)
-        mms = g.mmsi.values
+        mms = g.mmsi.to_numpy()
         for i, j in pairs:
             dr = xy[j] - xy[i]
             dv = np.array([vx[j] - vx[i], vy[j] - vy[i]])
@@ -402,11 +407,11 @@ def main():
     final.to_csv(out / "site_indicator_raw.csv", index=False)
 
     print("=" * 50)
-    print("✅ 运行成功！无任何报错！")
-    print("📊 结果已保存到：ais_output 文件夹")
-    print("📌 三个核心指标（直接使用）：")
-    print(" 1. density_raw         = 船舶通航密度")
-    print(" 2. complexity_raw      = 交通流复杂度")
+    print("运行成功。")
+    print("结果已保存到: ais_output 文件夹")
+    print("三个核心指标:")
+    print(" 1. density_raw = 船舶通航密度")
+    print(" 2. complexity_raw = 交通流复杂度")
     print(" 3. conflict_freq_per_day = 区域冲突频率")
     print("=" * 50)
 

@@ -1,0 +1,12 @@
+name: ais-indicator
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy>=1.24,<3
+  - pandas>=2.0,<3
+  - openpyxl>=3.1,<4
+  - scipy>=1.10,<2
+  - shapely>=2.0,<3
+  - pyproj>=3.5,<4
+  - geopandas>=0.14,<1
