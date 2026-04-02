@@ -99,20 +99,38 @@ def get_5_regions():
 
 # ====================== 自动填充参数，彻底解决报错 ======================
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--ais", nargs="+", default=["4-24.xlsx"])
-    parser.add_argument("--outdir", default="./ais_output")
-    parser.add_argument("--sheet-name", default=None)
-    parser.add_argument("--chunk-size", type=int, default=200000)
-    parser.add_argument("--time-bin", default="10min")
-    parser.add_argument("--max-speed-kn", type=float, default=40.0)
-    parser.add_argument("--max-jump-kn", type=float, default=60.0)
-    parser.add_argument("--heading-bins", type=int, default=8)
-    parser.add_argument("--search-radius-nm", type=float, default=6.0)
-    parser.add_argument("--dcpa-threshold-nm", type=float, default=0.5)
-    parser.add_argument("--tcpa-max-min", type=float, default=30.0)
-    parser.add_argument("--merge-window-min", type=float, default=20.0)
-    parser.add_argument("--max-rows", type=int, default=None)
+    parser = argparse.ArgumentParser(
+        description="AIS 指标计算脚本",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--ais", nargs="+", default=["4-24.xlsx"], help="输入 AIS 文件，可传多个 .xlsx 或 .csv")
+    parser.add_argument("--outdir", default="./ais_output", help="输出目录")
+    parser.add_argument("--sheet-name", default=None, help="Excel 工作表名，仅对 .xlsx 生效")
+    parser.add_argument("--chunk-size", type=int, default=200000, help="分块读取行数，数据量大时可调小")
+    parser.add_argument("--time-bin", default="10min", help="时间分箱粒度，例如 10min、15min、30min")
+    parser.add_argument("--max-speed-kn", type=float, default=40.0, help="清洗阶段允许的最大航速（节）")
+    parser.add_argument("--max-jump-kn", type=float, default=60.0, help="清洗异常跳点时允许的最大推断航速（节）")
+    parser.add_argument("--heading-bins", type=int, default=8, help="航向熵计算的分箱数量")
+    parser.add_argument(
+        "--search-radius-nm",
+        type=float,
+        default=6.0,
+        help="冲突检索半径（海里），常用可调参数；你给出的建议值约为 3.0-4.0",
+    )
+    parser.add_argument(
+        "--dcpa-threshold-nm",
+        type=float,
+        default=0.5,
+        help="判定潜在冲突的 DCPA 阈值（海里）",
+    )
+    parser.add_argument(
+        "--tcpa-max-min",
+        type=float,
+        default=30.0,
+        help="判定潜在冲突的最大 TCPA 窗口（分钟），常用可调参数；你给出的建议值约为 15-20",
+    )
+    parser.add_argument("--merge-window-min", type=float, default=20.0, help="合并重复冲突事件的时间窗（分钟）")
+    parser.add_argument("--max-rows", type=int, default=None, help="仅读取前 N 行，便于调试")
     return parser.parse_args()
 
 
