@@ -164,12 +164,38 @@ def iter_xlsx_chunks(path, sheet_name, chunk_size, max_rows):
         yield pd.DataFrame(batch, columns=header)
 
 
+def iter_csv_chunks(path, chunk_size, max_rows):
+    encodings = ["utf-8-sig", "utf-8", "gbk"]
+    last_error = None
+    for encoding in encodings:
+        try:
+            rows_read = 0
+            for chunk in pd.read_csv(path, chunksize=chunk_size, encoding=encoding):
+                if max_rows is not None:
+                    remaining = max_rows - rows_read
+                    if remaining <= 0:
+                        return
+                    if len(chunk) > remaining:
+                        chunk = chunk.iloc[:remaining].copy()
+                rows_read += len(chunk)
+                yield chunk
+                if max_rows is not None and rows_read >= max_rows:
+                    return
+            return
+        except UnicodeDecodeError as exc:
+            last_error = exc
+    if last_error is not None:
+        raise last_error
+
+
 def iter_ais_chunks(path, sheet_name, chunk_size, max_rows):
     ext = Path(path).suffix.lower()
     if ext == ".xlsx":
         yield from iter_xlsx_chunks(path, sheet_name, chunk_size, max_rows)
+    elif ext == ".csv":
+        yield from iter_csv_chunks(path, chunk_size, max_rows)
     else:
-        raise ValueError("仅支持xlsx")
+        raise ValueError("仅支持xlsx和csv")
 
 
 def infer_local_epsg(lon, lat):
@@ -408,7 +434,7 @@ def main():
 
     print("=" * 50)
     print("运行成功。")
-    print("结果已保存到: ais_output 文件夹")
+    print(f"结果已保存到: {out}")
     print("三个核心指标:")
     print(" 1. density_raw = 船舶通航密度")
     print(" 2. complexity_raw = 交通流复杂度")
